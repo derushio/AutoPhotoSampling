@@ -27,7 +27,7 @@ public class AutoPhotoSampling {
 				int width = imageView.getWidth();
 				int height = imageView.getHeight();
 
-				if (readBitmap != null) {
+				if (bitmap != null) {
 					readBitmap = Bitmap.createScaledBitmap(bitmap, width, height, false);
 					bitmap.recycle();
 				} else if (uri != null) {
