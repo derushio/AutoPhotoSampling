@@ -12,7 +12,7 @@ import android.widget.ImageView;
  */
 public class AutoPhotoSampling {
 
-	private static void autoPhotoSampling(final ImageView imageView, final Uri uri, final Resources resources, final Integer resourceId) {
+	private static void autoPhotoSampling(final ImageView imageView, final Bitmap bitmap, final Uri uri, final Resources resources, final Integer resourceId) {
 		imageView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
 			@Override
 			public boolean onPreDraw() {
@@ -21,44 +21,47 @@ public class AutoPhotoSampling {
 				// なので、サンプリング（ピクセルを抜いて読む）して、画像サイズを大幅に小さくする
 				options.inJustDecodeBounds = true;
 				// trueにすることで、実際の画像は読まれず、情報だけ取ってこれる
-				Bitmap bitmap = null;
+				Bitmap readBitmap = null;
 				// 読み込む対象Bitmap
 
 				int width = imageView.getWidth();
 				int height = imageView.getHeight();
 
-				if (uri != null) {
+				if (readBitmap != null) {
+					readBitmap = Bitmap.createScaledBitmap(bitmap, width, height, false);
+					bitmap.recycle();
+				} else if (uri != null) {
 					// uriが存在したら
 					BitmapFactory.decodeFile(uri.getPath(), options);
 					// ファイルをデコード（情報だけ取ってこられていて、実際は読まれていない（optionsによって））
 
-					int sampleSize = getSampleSize(options, width, height);
+					int sampleSize = getSampleSize(options.outWidth, options.outHeight, width, height);
 
 					options.inSampleSize = sampleSize;
 					// サンプルサイズを確定
 
 					options.inJustDecodeBounds = false;
 					// falseにすることにより、実際に画像を読む
-					bitmap = BitmapFactory.decodeFile(uri.getPath(), options);
+					readBitmap = BitmapFactory.decodeFile(uri.getPath(), options);
 					// 画像をサンプリングして読む
 				} else if (resources != null) {
 					// resourceが存在したら
 					BitmapFactory.decodeResource(resources, resourceId, options);
 					// ファイルをデコード（情報だけ取ってこられていて、実際は読まれていない（optionsによって））
 
-					int sampleSize = getSampleSize(options, width, height);
+					int sampleSize = getSampleSize(options.outWidth, options.outHeight, width, height);
 
 					options.inSampleSize = sampleSize;
 					// サンプルサイズを確定
 
 					options.inJustDecodeBounds = false;
 					// falseにすることにより、実際に画像を読む
-					bitmap = BitmapFactory.decodeResource(resources, resourceId, options);
+					readBitmap = BitmapFactory.decodeResource(resources, resourceId, options);
 					// 画像をサンプリングして読む
 				}
 
 				try {
-					imageView.setImageBitmap(bitmap);
+					imageView.setImageBitmap(readBitmap);
 					// 読み込んだ画像をセットする
 				} catch (NullPointerException e) {
 
@@ -71,18 +74,20 @@ public class AutoPhotoSampling {
 		});
 	}
 
+	public static void autoPhotoSampling(ImageView imageView, Bitmap bitmap) {
+		autoPhotoSampling(imageView, bitmap, null, null, null);
+	}
+
 	public static void autoPhotoSampling(ImageView imageView, Uri uri) {
-		autoPhotoSampling(imageView, uri, null, null);
+		autoPhotoSampling(imageView, null, uri, null, null);
 	}
 
 	public static void autoPhotoSampling(ImageView imageView, Resources resources, int resourceId) {
-		autoPhotoSampling(imageView, null, resources, resourceId);
+		autoPhotoSampling(imageView, null, null, resources, resourceId);
 	}
 
-	public static int getSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+	public static int getSampleSize(int width, int height, int reqWidth, int reqHeight) {
 		// オプションと求める幅と高さからサンプルサイズを確定
-		final int height = options.outHeight;
-		final int width = options.outWidth;
 		int inSampleSize = 1;
 		// デフォルトはフルサイズ
 
