@@ -28,8 +28,8 @@ public class AutoPhotoSampling {
 				int height = imageView.getHeight();
 
 				if (bitmap != null) {
-					readBitmap = Bitmap.createScaledBitmap(bitmap, width, height, false);
-					bitmap.recycle();
+					int sampleSize = getSampleSize(bitmap.getWidth(), bitmap.getHeight(), width, height);
+					readBitmap = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth() * sampleSize, bitmap.getHeight() * sampleSize, false);
 				} else if (uri != null) {
 					// uriが存在したら
 					BitmapFactory.decodeFile(uri.getPath(), options);
