@@ -4,7 +4,6 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.util.Log;
 import android.widget.ImageView;
 
 /**
@@ -12,7 +11,7 @@ import android.widget.ImageView;
  */
 public class AutoPhotoSampling {
 
-	private static Bitmap autoPhotoSampling(final ImageView imageView, final Bitmap bitmap, final Uri uri, final Resources resources, final Integer resourceId) {
+	private static Bitmap autoPhotoSampling(ImageView imageView, Bitmap bitmap, Uri uri, Resources resources, Integer resourceId) {
 		BitmapFactory.Options options = new BitmapFactory.Options();
 		// サムネイルなのに大サイズの画像をいちいち読み込んでいたらメモリがいくらあっても足りない
 		// なので、サンプリング（ピクセルを抜いて読む）して、画像サイズを大幅に小さくする
@@ -26,7 +25,6 @@ public class AutoPhotoSampling {
 
 		if (bitmap != null) {
 			float sampleRate = getSampleRate(bitmap.getWidth(), bitmap.getHeight(), width, height);
-			Log.d("size", (bitmap.getWidth() * sampleRate) + "," + (bitmap.getHeight() * sampleRate));
 			readBitmap = Bitmap.createScaledBitmap(bitmap, (int) (bitmap.getWidth() * sampleRate), (int) (bitmap.getHeight() * sampleRate), false);
 		} else if (uri != null) {
 			// uriが存在したら
@@ -58,13 +56,10 @@ public class AutoPhotoSampling {
 			// 画像をサンプリングして読む
 		}
 
-		try {
+		if (readBitmap != null) {
 			imageView.setImageBitmap(readBitmap);
 			// 読み込んだ画像をセットする
-		} catch (NullPointerException e) {
-
 		}
-
 		imageView.invalidate();
 		return readBitmap;
 	}
@@ -102,7 +97,7 @@ public class AutoPhotoSampling {
 
 		if (height > reqHeight || width > reqWidth) {
 			// フルサイズよりも小さくする必要があるなら
-			if (width < height) {
+			if (width > height) {
 				inSampleSize = Math.round((float) height / (float) reqHeight);
 			} else {
 				inSampleSize = Math.round((float) width / (float) reqWidth);
